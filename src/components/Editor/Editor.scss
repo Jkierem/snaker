@@ -1,0 +1,141 @@
+@mixin flex($dir:column, $justify:flex-start, $align:center) {
+    display: flex;
+    flex-direction: $dir;
+    justify-content: $justify;
+    align-items: $align;
+}
+
+:root {
+    --primary: #43a047;
+    --primary-dark: #00701a;
+    --danger: #b71c1c;
+    --danger-dark: #7f0000; 
+    --help: #1565c0;
+    --help-dark: #003c8f;
+    --alt: #7b1fa2;
+    --alt-dark: #4a0072;
+}
+
+.console {
+    height: 5%;
+    background-color: #2F3129;
+    
+    &--open {
+        height: 30%;
+    }
+}
+
+.ace, .console {
+   transition: 0.2s height linear;
+}
+
+.toolbar {
+    @include flex(row,flex-start);
+    height: 6%;
+    width: 100%;
+    background-color: #272822;
+    padding: 8px;
+    padding-left: 8px;
+    position: relative;
+    box-sizing: border-box;
+
+    &__button {
+        @include flex(row);
+        cursor: pointer;
+        user-select: none;
+        color: white;
+        background-color: var(--color, var(--green));
+        border-radius: 4px;
+        height: 100%;
+        box-sizing: border-box;
+        margin-right: 16px;
+        padding: {
+            left: 16px;
+            right: 16px;
+            top: 4px;
+            bottom: 4px;
+        }
+        box-shadow: 
+            0px 3px 1px -2px rgba(0, 0, 0, 0.2),
+            0px 2px 2px 0px rgba(0, 0, 0, 0.14),
+            0px 1px 5px 0px rgba(0,0,0,.12);
+
+        &__label {
+            @include flex(column,center,center);
+            font-size: 16px;
+            line-height: 16px;
+        }
+
+        &:active {
+            background-color: var(--color-alt, var(--green-dark));
+        }
+    }
+
+    &__play-icon {
+        --thickness:  var(--size,8px);
+        margin-right: 8px;
+        border: {
+            top: var(--thickness) solid transparent;
+            bottom: var(--thickness) solid transparent;
+            left: calc(var(--thickness) * 2) solid white;
+            right: none;
+        }
+    }
+    
+    &__stop-icon {
+        --thickness: var(--size,14px);
+        margin-right: 8px;
+        width: var(--thickness);
+        height: var(--thickness);
+        background-color: white;
+        box-sizing: border-box;
+    }
+    
+    &__refresh-icon {
+        --thickness: 4px;
+        margin-right: 8px;
+        position: relative;
+        background-color: transparent;
+        width: 16px;
+        height: 16px;
+        transform: rotate(90deg);
+        transition: 1s transform linear;
+
+        &::before {
+            content: "";
+            display: block;
+            border-radius: 50%;
+            height: 10px;
+            width: 10px;
+            transform: rotate(45deg);
+            border: {
+                top: var(--thickness) solid transparent;
+                bottom: var(--thickness) solid white;
+                left: var(--thickness) solid white;
+                right: var(--thickness) solid white;
+            }
+        }
+
+        &::after {
+            $t: 9px;
+            content: "";
+            display: block;
+            position: absolute;
+            border-left: $t solid white;
+            border-top: ($t/2) solid transparent;
+            border-bottom: ($t/2) solid transparent;
+            width: 0;
+            height: 0;
+            left: 50%;
+            top: -2.5px;
+        }
+    }
+
+    &__help-icon::before {
+        content: "?";
+        font-weight: bolder;
+        font-size: 18px;
+        font-style: normal;
+        margin-right: 8px;
+    }
+}
