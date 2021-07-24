@@ -7,26 +7,19 @@ const refreshWindow = () => {
     window.location.reload();
 }
 
-const triggerHelpModal = () => {
-
-}
-
 const saveCode = (code) => {
     StorageObject.save(code)
 }
 
-export const handleEvent = (topicRef) => ({ event, data }) => {
+export const handleEvent = (topicRef,upperEventHandler) => ({ event, data }) => {
     engine.setTopic(topicRef)
+    const relayEvent = () => upperEventHandler({ event, data })
     event.match({
         Play: () => engine.start(data),
         Stop: () => engine.stop(),
-        Refresh: () => refreshWindow(),
-        Help: () => triggerHelpModal(),
-        Save: () => saveCode(data),
-        RuntimeError: () => {},
-        Console: () => { console.log(...data.args)},
+        Refresh: refreshWindow,
+        SaveCode: () => saveCode(data),
         SnakeAction: () => {},
-        Persistance: () =>{ engine.setPersistance(data.value) },
-        Unknown: () => { console.log(event,data) },
+        _: relayEvent,
     })
 }

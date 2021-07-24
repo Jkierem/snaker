@@ -1,76 +1,63 @@
+import { Maybe } from "jazzi";
 import { Event } from "../types";
 import { spawnWorker, terminateWorker } from "../worker"
 
+const mkContext = () => ({
+    worker: undefined,
+    code: undefined, 
+    topic: undefined,
+    stopped: false,
+    snake: [], 
+    world: [], 
+    persistance: {},
+    setWorker(worker){
+        this.worker = worker
+    },
+    onWorkerReady(worker){
+        this.setWorker(worker) 
+    },
+    setTopic(topic){
+        this.topic = topic
+        return this;
+    }
+})
+
 const Compiler = () => {
-    let worker = undefined;
-    let topic = undefined;
-    let snake = []
-    let world = []
-    let persistance = {};
-    let code;
-    let started = false;
-    let received = false;
-    let stopped = false;
+    let context = mkContext();
     return {
         reset(){
-            persistance = {};
-            code = undefined;
-            started = false;
-            received = false;
-            stopped = false;
+            context = mkContext().setTopic(context.topic);
+            context.topic.emit(Event.Persistance, context.persistance);
+            context.topic.emit(Event.Running, !context.stopped)
         },
-        start(_code){
+        start(code){
+            this.terminate();
             this.reset();
-            code = _code;
+            context.code = code;
             this.run();
         },
         run(){
             this.terminate()
-            return spawnWorker(code, snake, world, persistance)
-            .fmap(e => {
-                e.fmap(workerRef => {
-                    worker = workerRef
-                    worker.addEventListener("message", ({ data }) => {
-                        const { type, ...extra } = data;
-                        topic.emit(Event.fromString(type),extra)
-                    })
-                    if(!started){
-                        worker.postMessage({
-                            type: "Start"
-                        })
-                        started = true;
-                    } else {
-                        let id;
-                        const check = () => {
-                            if( received === true && !stopped){
-                                received = false;
-                                clearInterval(id)
-                                worker.postMessage({
-                                    type: "Start"
-                                })
-                            }
-                        }
-                        id = setInterval(check,100)
-                    }
-                })
-            }).run()
+            return spawnWorker(context)
+            .then((persistanceData) => {
+                context.persistance = persistanceData.value;
+                context.topic.emit(Event.Persistance, context.persistance);
+                Maybe
+                .fromFalsy(context.stopped)
+                .effect(() => this.terminate())
+                .ifNone(() => this.run())
+            })
         },
         stop(){
-            stopped = true;
+            context.stopped = true;
+            context.topic.emit(Event.Running, !context.stopped)
             this.terminate()
         },
         terminate(){
-            terminateWorker(worker)
-            .effect(() => worker = undefined)
+            terminateWorker(context.worker)
+            .effect(() => context.setWorker(undefined))
         },
-        setTopic(t){ topic = t },
-        setPersistance(data){
-            persistance = data;
-            received = true;
-            if(!stopped){
-                this.run(code);
-            }
-        }
+        setTopic: (t) => context.setTopic(t)
     }
 }
 

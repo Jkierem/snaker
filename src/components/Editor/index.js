@@ -3,7 +3,9 @@ import AceEditor from "react-ace"
 import gcn from "getclassname"
 import { TopicContext } from '../../core/topic';
 import { Event } from "../../core/types"
-import { getVariant } from 'jazzi';
+import { getVariant, Maybe } from 'jazzi';
+import StorageObject from '../../middleware/localStorage';
+import { useDebugger } from '../../core/debugger';
 import "./Editor.scss"
 
 import "ace-builds/webpack-resolver";
@@ -12,7 +14,6 @@ import "ace-builds/src-noconflict/ext-language_tools";
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 import "ace-builds/src-noconflict/keybinding-vscode";
 import "ace-builds/src-noconflict/snippets/javascript";
-import StorageObject from '../../middleware/localStorage';
 
 const toolbarCl = gcn({ base: 'toolbar' })
 const buttonCl = toolbarCl.element('button')
@@ -22,20 +23,21 @@ const stopIconCl = toolbarCl.element('stop-icon')
 const refreshIconCl = toolbarCl.element('refresh-icon')
 const helpIconCl = toolbarCl.element('help-icon')
 
-
 const EventButton = ({ type, onClick }) => {
   const iconClass = type.match({
-    Play: () => playIconCl,
-    Stop: () => stopIconCl,
-    Refresh: () => refreshIconCl,
-    Help: () => helpIconCl
+    Play: () => Maybe.from(playIconCl),
+    Stop: () => Maybe.from(stopIconCl),
+    Refresh: () => Maybe.from(refreshIconCl),
+    Help: () => Maybe.from(helpIconCl),
+    _: Maybe.None
   })
 
   const color = type.match({
     Play: () => "primary",
     Stop: () => "danger",
     Refresh: () => "alt",
-    Help: () => "help"
+    Help: () => "help",
+    _: () => "fallback"
   })
 
   const style = {
@@ -52,15 +54,38 @@ const EventButton = ({ type, onClick }) => {
     style={style}
     onClick={handleClick}
   >
-    <i className={iconClass} />
+    { 
+      iconClass
+        .fmap(cl => <i className={cl} />)
+        .onNone(() => <></>)
+    }
     <div className={buttonLabelCl}>{getVariant(type)}</div>
   </div>
 }
 
-const Editor = (props) => {
+const parseValue = (val) => {
+  const t = typeof val;
+  switch(t){
+    case "undefined":
+    case "boolean":
+    case "number":
+    case "bigint":
+    case "string":
+    case "symbol":
+      return val
+    case "object":
+      return JSON.stringify(val)
+    case "function":
+      return `[Function ${val.name}]`
+  }
+}
 
+const Editor = (props) => {
+  const debuggerData = useDebugger();
+  const { persistance, running } = debuggerData
+  const persistanceKeys = Object.keys(persistance ?? {}).sort()
   const [code, setCode] = useState('');
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const editorRef = useRef();
 
   useEffect(() => {
@@ -69,12 +94,16 @@ const Editor = (props) => {
 
   const handleCodeChange = (code) => {
     setCode(code)
-    topic.emit(Event.Save, code)
+    topic.emit(Event.SaveCode, code)
   }
 
   const topic = useContext(TopicContext);
   const handleEvent = (evt) => {
-    topic.emit(evt, evt.isPlay() ? code : undefined)
+    evt.match({
+      Play: () => topic.emit(evt, code),
+      Save: () => topic.emit(evt, code),
+      _: () => topic.emit(evt)
+    })
   }
 
   const aceClass = gcn({
@@ -82,13 +111,17 @@ const Editor = (props) => {
     "&--shrink": open,
   })
 
-  const consoleClass = gcn({
-    base: "console",
+  const debuggerClass = gcn({
+    base: "debugger",
     "&--open": open,
   })
 
+  const debuggerContentCl = debuggerClass.element("content")
+  const debuggerContentItemCl = debuggerContentCl.element("item")
+  const debuggerIconCl = debuggerClass.element("icon").recompute({ "&--open": open })
+  const debuggerIconImageCl = debuggerIconCl.element("image")
 
-  const aceHeight = open ? "64%" : "89%"
+  const aceHeight = open ? "54%" : "89%"
 
   return(
     <>
@@ -107,6 +140,14 @@ const Editor = (props) => {
         />
         <EventButton 
           type={Event.Help}
+          onClick={handleEvent}
+        />
+        <EventButton 
+          type={Event.Save}
+          onClick={handleEvent}
+        />
+        <EventButton 
+          type={Event.Load}
           onClick={handleEvent}
         />
       </div>
@@ -135,10 +176,28 @@ const Editor = (props) => {
         }}
       />
       <div 
-        className={consoleClass} 
-        onClick={() => setOpen(x => !x)}
+        className={debuggerClass} 
         onTransitionEnd={() => editorRef.current.editor.resize()}
       >
+        <div 
+          className={debuggerIconCl}
+          onClick={() => setOpen(x => !x)}
+        >
+          <div className={debuggerIconImageCl}></div>
+        </div>
+        <h4>Running: {running? "true" : "false"}</h4>
+        <h4>State:</h4>
+        <div className={debuggerContentCl}>
+          {
+            persistanceKeys.length ? persistanceKeys.map(key => {
+              return <div className={debuggerContentItemCl} key={key}>
+                <div className="id">ID: {key}</div>
+                <div className="value">Value: {parseValue(persistance[key] ?? undefined)}</div>
+                <div className="value">Type: {typeof persistance[key] ?? "undefined"}</div>
+              </div>
+            }) : <div className="fallback">No use of useState detected</div>
+          }
+        </div>
       </div>
     </>
   )

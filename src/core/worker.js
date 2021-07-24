@@ -1,4 +1,5 @@
-import { BoxedEnumType, Either, IO, Maybe, Result } from "jazzi";
+import { BoxedEnumType, Either, Maybe, Result } from "jazzi";
+import { Event } from "./types";
 import { makeId } from "./utils";
 
 const WorkerError = BoxedEnumType("WorkerError",["InvalidToken","SecurityError","ParseError"])
@@ -37,23 +38,20 @@ const supportedFns = ["log"]
 const handler = {
     get: function(target, fn) {
         if( supportedFns.includes(fn) ){
-            return (...args) => self.postMessage({
-                type: "Console",
-                args,
-                fn
-            })
-        }
-        if( fallbackFns.includes(fn) ){
-            return (...args) => {
-                self.postMessage({
-                    type: "Console",
-                    args: [\`Unsupported console function: \${fn}. Falling back to console.log\`],
-                    fn: "log"
+            return (...rawArgs) => {
+                const args = rawArgs.map(item => {
+                    if( typeof item === "object"){
+                        return JSON.parse(JSON.stringify(item))
+                    } else 
+                    if( typeof item === "function" ) {
+                        return \`[Function \${item.name}]\`
+                    }
+                    return item
                 })
                 self.postMessage({
                     type: "Console",
                     args,
-                    fn: "log"
+                    fn
                 })
             }
         }
@@ -89,10 +87,12 @@ self.onmessage = function(e){
                 error: e
             })
         } finally {
-            self.postMessage({
-                type: "Persistance",
-                value: ${pId}
-            })
+            setTimeout(() => {
+                self.postMessage({
+                    type: "Persistance",
+                    value: ${pId}
+                })
+            },500)
         }
     }
 }
@@ -143,16 +143,37 @@ const sanitizeCode = (code) => {
         })
 }
 
-export const spawnWorker = (code,snake,world,persistance) => {
-    return IO.from(() => {
-        return sanitizeCode(code)
-            .fmap(addRuntime(snake,world,persistance))
-            .chain(bundleCode)
-            .fmap(blob => {
-                const url = URL.createObjectURL(blob)
-                const worker = new Worker(url)
-                URL.revokeObjectURL(url)
-                return worker
+export const spawnWorker = (context) => {
+    const {
+        code,
+        snake,
+        world,
+        persistance,
+    } = context;
+    return new Promise((res,rej) => {
+        sanitizeCode(code)
+        .fmap(addRuntime(snake,world,persistance))
+        .chain(bundleCode)
+        .fmap(blob => {
+            const url = URL.createObjectURL(blob)
+            const worker = new Worker(url)
+            URL.revokeObjectURL(url)
+            return worker
+        })
+        .fmap(worker => {
+            worker.addEventListener("message", ({ data }) => {
+                const { type, ...extra } = data;
+                if(type === "Persistance"){
+                    worker.terminate();
+                    res(data);
+                } else {
+                    context.topic.emit(Event.fromString(type),extra)
+                }
             })
-    })
+            worker.postMessage({ type: "Start" })
+            return worker;
+        })
+        .fmap((w) => context.onWorkerReady(w))
+        .onLeft(rej);
+    }) 
 }

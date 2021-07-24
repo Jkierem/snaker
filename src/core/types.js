@@ -9,11 +9,15 @@ export const Event = EnumType(
         "Stop",
         "Refresh",
         "Help",
+        "SaveCode",
+        "Clear",
         "Save",
+        "Load",
         "RuntimeError",
         "Console",
         "SnakeAction",
         "Persistance",
+        "Running",
         "Unknown"
     ]
 );

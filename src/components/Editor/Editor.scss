@@ -1,3 +1,4 @@
+@use "sass:math";
 @mixin flex($dir:column, $justify:flex-start, $align:center) {
     display: flex;
     flex-direction: $dir;
@@ -14,14 +15,87 @@
     --help-dark: #003c8f;
     --alt: #7b1fa2;
     --alt-dark: #4a0072;
+    --fallback: #555;
+    --fallback-dark: #222;
 }
 
-.console {
+.debugger {
     height: 5%;
     background-color: #2F3129;
+    overflow: hidden;
+    position: relative;
+    color: white;
+    transition: 0.2s height linear;
     
     &--open {
-        height: 30%;
+        height: 40%;
+    }
+
+    
+    &__icon {
+        z-index: 1;
+        width: 100%;
+        height: 50px;
+        position: absolute;
+        top: 0;
+        cursor: pointer;
+        @include flex(row,center);
+
+        &__image {
+            border-top: 2px solid white;
+            border-left: 2px solid white;
+            transition: transform 0.2s linear;
+            transform-origin: center center;
+            transform: translateY(25%) rotate(45deg);
+            width: 10px;
+            height: 10px;
+        }
+        &--open &__image {
+            transform: translateY(-25%) rotate(-135deg);
+        }
+    }
+
+    h4:first-of-type {
+        margin-top: 50px;
+    }
+
+    h4 {
+        margin: 8px;
+        padding-left: 42px;
+    }
+
+    &__content {
+        margin: 0 42px;
+        margin-bottom: 12px;
+        height: calc(100% - 130px);
+        box-sizing: border-box;
+
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: flex-start;
+        flex-wrap: wrap;
+
+        overflow-y: scroll;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+        &::-webkit-scrollbar { /* Chrome */
+            display: none;
+        }
+
+        & > .fallback {
+            margin: 16px;
+            margin-top: 6px;
+        }
+
+        &__item {
+            margin: 8px;
+            min-width: 30px;
+            .id, .value {
+                border: 1px solid white;
+                padding: 6px;
+            }
+        }
     }
 }
 
@@ -38,6 +112,13 @@
     padding-left: 8px;
     position: relative;
     box-sizing: border-box;
+
+    overflow-x: scroll;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    &::-webkit-scrollbar { /* Chrome */
+        display: none;
+    }
 
     &__button {
         @include flex(row);
@@ -122,8 +203,8 @@
             display: block;
             position: absolute;
             border-left: $t solid white;
-            border-top: ($t/2) solid transparent;
-            border-bottom: ($t/2) solid transparent;
+            border-top:  math.div($t,2) solid transparent;
+            border-bottom: math.div($t,2) solid transparent;
             width: 0;
             height: 0;
             left: 50%;
