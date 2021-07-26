@@ -1,6 +1,7 @@
 import { Maybe } from "jazzi";
 import { Event } from "../types";
-import { spawnWorker, terminateWorker } from "../worker"
+import { parseMinifyError, parseRuntimeError } from "./errorMapper";
+import { spawnWorker, terminateWorker } from "./worker"
 
 const mkContext = () => ({
     worker: undefined,
@@ -10,6 +11,7 @@ const mkContext = () => ({
     snake: [], 
     world: [], 
     persistance: {},
+    compilationData: {},
     setWorker(worker){
         this.worker = worker
     },
@@ -19,10 +21,13 @@ const mkContext = () => ({
     setTopic(topic){
         this.topic = topic
         return this;
+    },
+    setCompilationData(minifiedResult){
+        this.compilationData = minifiedResult;
     }
 })
 
-const Compiler = () => {
+const WorkerManager = () => {
     let context = mkContext();
     return {
         reset(){
@@ -43,9 +48,16 @@ const Compiler = () => {
                 context.persistance = persistanceData.value;
                 context.topic.emit(Event.Persistance, context.persistance);
                 Maybe
-                .fromFalsy(context.stopped)
-                .effect(() => this.terminate())
-                .ifNone(() => this.run())
+                    .fromFalsy(context.stopped)
+                    .effect(() => this.terminate())
+                    .ifNone(() => this.run())
+            }).catch(err => {
+                this.stop();
+                err.match({
+                    MinifyError: (data) => {
+                        context.topic.emit(Event.Error, parseMinifyError(data))
+                    }
+                })
             })
         },
         stop(){
@@ -57,8 +69,12 @@ const Compiler = () => {
             terminateWorker(context.worker)
             .effect(() => context.setWorker(undefined))
         },
-        setTopic: (t) => context.setTopic(t)
+        setTopic: (t) => context.setTopic(t),
+        handleRuntimeError(error){
+            this.stop()
+            context.topic.emit(Event.Error, parseRuntimeError(error, context.compilationData))
+        }
     }
 }
 
-export default Compiler
+export default WorkerManager

@@ -1,7 +1,7 @@
 import StorageObject from "../../middleware/localStorage"
-import Compiler from "./compiler"
+import Manager from "./manager"
 
-const engine = Compiler()
+const workerManager = Manager()
 
 const refreshWindow = () => {
     window.location.reload();
@@ -12,11 +12,12 @@ const saveCode = (code) => {
 }
 
 export const handleEvent = (topicRef,upperEventHandler) => ({ event, data }) => {
-    engine.setTopic(topicRef)
+    workerManager.setTopic(topicRef)
     const relayEvent = () => upperEventHandler({ event, data })
     event.match({
-        Play: () => engine.start(data),
-        Stop: () => engine.stop(),
+        Play: () => workerManager.start(data),
+        Stop: () => workerManager.stop(),
+        RuntimeError: () => workerManager.handleRuntimeError(data),
         Refresh: refreshWindow,
         SaveCode: () => saveCode(data),
         SnakeAction: () => {},

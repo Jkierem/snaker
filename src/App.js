@@ -3,14 +3,14 @@ import Editor from "./components/Editor"
 import { Topic, TopicContext } from "./core/topic"
 import { useEffect, useState } from "react"
 import { handleEvent } from "./core/EventHandler"
-import "./App.scss"
 import { DebuggerContext } from "./core/debugger"
+import "./App.scss"
 
 const topic = Topic();
-const isSnake = x => typeof x === "object" && x?.__SNAKE__
+const isSnake = x => typeof x === "object" && x?.isSnake
 const hideSnake = x => {
   const h = { ...x, turnLeft: () => {}, turnRight: () => {} }
-  delete h.__SNAKE__
+  delete h.isSnake
   return h
 }
 function App() {
@@ -23,6 +23,8 @@ function App() {
       Console: () => console.log(...data.args.map(x => isSnake(x) ? hideSnake(x) : x)),
       Persistance: () => setDebugger(prev => ({ ...prev, persistance: data })),
       Running: () => setDebugger(prev => ({ ...prev, running: data })),
+      Error: () => setDebugger(prev => ({ ...prev, errors: [...(prev.errors ?? []), data] })),
+      CleanErrors: () => setDebugger(prev => ({ ...prev, errors: undefined})),
       _: () => console.log(event,data)
     })
   }

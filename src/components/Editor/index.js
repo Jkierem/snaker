@@ -85,7 +85,8 @@ const parseValue = (val) => {
 
 const Editor = (props) => {
   const debuggerData = useDebugger();
-  const { persistance, running } = debuggerData
+  const { persistance, running, errors } = debuggerData
+  const annotations = errors ? errors.map(x => ({ ...x, type: "error" })) : []
   const persistanceKeys = Object.keys(persistance ?? {}).sort()
   const [code, setCode] = useState('');
   const [open, setOpen] = useState(true);
@@ -98,6 +99,7 @@ const Editor = (props) => {
   const handleCodeChange = (code) => {
     setCode(code)
     topic.emit(Event.SaveCode, code)
+    topic.emit(Event.CleanErrors)
   }
 
   const topic = useContext(TopicContext);
@@ -175,6 +177,7 @@ const Editor = (props) => {
         ref={editorRef}
         wrapEnabled={true}
         readOnly={running}
+        annotations={annotations}
         setOptions={{
           enableMultiselect: true,
         }}

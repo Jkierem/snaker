@@ -18,6 +18,8 @@ export const Event = EnumType(
         "SnakeAction",
         "Persistance",
         "Running",
+        "Error",
+        "CleanErrors",
         "Unknown"
     ]
 );
