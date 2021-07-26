@@ -11,6 +11,7 @@ const deepStringifyArray = (arr) => {
 const addRuntime = (snake,world,persistantData) => (code) => {
     const pId =`Persistance${makeId(8)}`;
 return `const Snake = {
+    __SNAKE__: true,
     turnLeft: () => self.postMessage({ 
         type: "SnakeAction",
         value: "left"

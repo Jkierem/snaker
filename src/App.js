@@ -7,6 +7,12 @@ import "./App.scss"
 import { DebuggerContext } from "./core/debugger"
 
 const topic = Topic();
+const isSnake = x => typeof x === "object" && x?.__SNAKE__
+const hideSnake = x => {
+  const h = { ...x, turnLeft: () => {}, turnRight: () => {} }
+  delete h.__SNAKE__
+  return h
+}
 function App() {
 
   const [debuggerData, setDebugger] = useState({})
@@ -14,7 +20,7 @@ function App() {
   const handleReactEffects = ({ event, data }) => {
     event.match({
       Help: () => {},
-      Console: () => console.log(...data.args),
+      Console: () => console.log(...data.args.map(x => isSnake(x) ? hideSnake(x) : x)),
       Persistance: () => setDebugger(prev => ({ ...prev, persistance: data })),
       Running: () => setDebugger(prev => ({ ...prev, running: data })),
       _: () => console.log(event,data)

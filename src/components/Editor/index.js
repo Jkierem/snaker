@@ -14,6 +14,7 @@ import "ace-builds/src-noconflict/ext-language_tools";
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 import "ace-builds/src-noconflict/keybinding-vscode";
 import "ace-builds/src-noconflict/snippets/javascript";
+import "ace-builds/src-noconflict/snippets/text";
 
 const toolbarCl = gcn({ base: 'toolbar' })
 const buttonCl = toolbarCl.element('button')
@@ -77,6 +78,8 @@ const parseValue = (val) => {
       return JSON.stringify(val)
     case "function":
       return `[Function ${val.name}]`
+    default:
+      return val
   }
 }
 
@@ -155,7 +158,7 @@ const Editor = (props) => {
         width="100%"
         height={aceHeight}
         className={aceClass.toString()}
-        mode="javascript"
+        mode={running ? "text": "javascript"}
         theme="monokai"
         onChange={handleCodeChange}
         value={code}
@@ -171,6 +174,10 @@ const Editor = (props) => {
         vScrollBarAlwaysVisible={false}
         ref={editorRef}
         wrapEnabled={true}
+        readOnly={running}
+        setOptions={{
+          enableMultiselect: true,
+        }}
         onLoad={(editor) => {
           editor.getSession().setUseWorker(false)
         }}
