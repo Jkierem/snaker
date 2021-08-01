@@ -1,5 +1,3 @@
-export const defaultStamp = '-- emtpy --'
-
 export const helpMessage = "// For info on how to play click on help"
 
 export const example = `// This keeps the snake alive and counts the number of turns
