@@ -2,7 +2,7 @@ import Game from "./components/Game"
 import Editor from "./components/Editor"
 import { Topic, TopicContext } from "./core/topic"
 import { useEffect, useState } from "react"
-import { handleEvent } from "./core/EventHandler"
+import { handleEvent } from "./core/WorkerEngine"
 import { DebuggerContext } from "./core/debugger"
 import "./App.scss"
 
