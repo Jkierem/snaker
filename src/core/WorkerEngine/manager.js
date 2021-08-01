@@ -1,5 +1,6 @@
 import { Maybe } from "jazzi";
 import { Event } from "../types";
+import { mkEngine } from "../GameEngine"
 import { parseMinifyError, parseRuntimeError } from "./errorMapper";
 import { spawnWorker, terminateWorker } from "./worker"
 
@@ -8,8 +9,7 @@ const mkContext = () => ({
     code: undefined, 
     topic: undefined,
     stopped: false,
-    snake: [], 
-    world: [], 
+    engine: undefined,
     persistance: {},
     compilationData: {},
     setWorker(worker){
@@ -22,18 +22,28 @@ const mkContext = () => ({
         this.topic = topic
         return this;
     },
+    partialCopy(){
+        return mkContext()
+            .setTopic(this.topic)
+            .setEngine(mkEngine())
+    },
     setCompilationData(minifiedResult){
         this.compilationData = minifiedResult;
+    },
+    setEngine(engine){
+        this.engine = engine
+        return this;
     }
 })
 
 const WorkerManager = () => {
-    let context = mkContext();
+    let context = mkContext().setEngine(mkEngine());
     return {
         reset(){
-            context = mkContext().setTopic(context.topic);
+            context = context.partialCopy();
             context.topic.emit(Event.Persistance, context.persistance);
             context.topic.emit(Event.Running, !context.stopped)
+            context.topic.emit(Event.Death, context.engine.isDead)
         },
         start(code){
             this.terminate();
@@ -44,16 +54,27 @@ const WorkerManager = () => {
         run(){
             this.terminate()
             return spawnWorker(context)
-            .then((persistanceData) => {
+            .then(([persistanceData, desiredAction]) => {
+                // console.log(desiredAction.get())
+                desiredAction
+                .effect((action) => {
+                    if( action === "right" ){
+                        context.engine.turnRight();
+                    } else {
+                        context.engine.turnLeft();
+                    }
+                })
                 context.persistance = persistanceData.value;
                 context.topic.emit(Event.Persistance, context.persistance);
+                context.engine.runStep();
                 Maybe
-                    .fromFalsy(context.stopped)
-                    .effect(() => this.terminate())
+                    .fromFalsy(context.stopped || context.engine.isDead)
+                    .effect(() => context.engine.isDead && context.topic.emit(Event.Death, true))
+                    .effect(() => this.stop())
                     .ifNone(() => this.run())
             }).catch(err => {
                 this.stop();
-                err.match({
+                err?.match?.({
                     MinifyError: (data) => {
                         context.topic.emit(Event.Error, parseMinifyError(data))
                     }

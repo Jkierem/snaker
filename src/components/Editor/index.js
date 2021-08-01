@@ -6,6 +6,7 @@ import { Event } from "../../core/types"
 import { getVariant, Maybe } from 'jazzi';
 import StorageObject from '../../middleware/localStorage';
 import { useDebugger } from '../../core/debugger';
+import { example } from '../../resources/messages';
 import "./Editor.scss"
 
 import "ace-builds/webpack-resolver";
@@ -85,7 +86,7 @@ const parseValue = (val) => {
 
 const Editor = (props) => {
   const debuggerData = useDebugger();
-  const { persistance, running, errors } = debuggerData
+  const { persistance, running, errors, dead } = debuggerData
   const annotations = errors ? errors.map(x => ({ ...x, type: "error" })) : []
   const persistanceKeys = Object.keys(persistance ?? {}).sort()
   const [code, setCode] = useState('');
@@ -107,6 +108,7 @@ const Editor = (props) => {
     evt.match({
       Play: () => topic.emit(evt, code),
       Save: () => topic.emit(evt, code),
+      Help: () => setCode(example),
       _: () => topic.emit(evt)
     })
   }
@@ -195,7 +197,8 @@ const Editor = (props) => {
         >
           <div className={debuggerIconImageCl}></div>
         </div>
-        <h4>Running: {running? "true" : "false"}</h4>
+        <h4>Running: {running? "True" : "False"}</h4>
+        <h4>Snake: {dead ? "Dead" : "Alive"}</h4>
         <h4>State:</h4>
         <div className={debuggerContentCl}>
           {

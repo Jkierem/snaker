@@ -1,4 +1,4 @@
-import { Matrix, Position } from "./types"
+import { Matrix, Position } from "../types"
 
 const dec = x => x - 1
 const inc = x => x + 1
@@ -27,35 +27,39 @@ const moveSnake = (snake,dir) => {
     ]
 }
 
-export const step = (mat, prevSnake, snakeDir) => {
+export const step = (mat, prevSnake, snakeDir, prevScore) => {
     const matrix = Matrix.of(mat);
     const snake = [...prevSnake];
     const snakeHead = getHead(snake);
     const nextPos = move(snakeHead,snakeDir)
     const nextTile = matrix.getTile(nextPos);
-
     return nextTile.match({
         Empty: () => {
             const nextSnake = moveSnake(removeTail(snake),snakeDir)
+            const nextIsDead = nextSnake.slice(1).map(Position.fromArray).some(p => p.equals(nextPos))
             return {
+                score: prevScore,
                 world: matrix.get(),
                 snake: nextSnake,
-                dead: nextSnake.map(Position.fromArray).some(p => p.equals(nextPos)),
+                isDead: nextIsDead,
             }
         },
         Wall: () => {
             return {
+                score: prevScore,
                 world: matrix.get(),
-                dead: true,
+                isDead: true,
                 snake,
             }
         },
         Fruit: () => {
             const nextSnake = moveSnake(snake,snakeDir)
+            const nextIsDead = nextSnake.slice(1).map(Position.fromArray).some(p => p.equals(nextPos))
             return {
+                score: prevScore + 1,
                 world: matrix.get(),
                 snake: nextSnake,
-                dead: nextSnake.map(Position.fromArray).some(p => p.equals(nextPos)),
+                isDead: nextIsDead,
             }
         }
     })

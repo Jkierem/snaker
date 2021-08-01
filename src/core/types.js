@@ -1,4 +1,5 @@
 import { EnumType, Functor, Maybe, Union } from "jazzi"
+import { rangeOf } from "../resources/utils";
 
 export const Direction = EnumType("Dir",["Up","Down","Left","Right"])
 export const Tile = EnumType("Tile",["Empty","Fruit","Wall"]);
@@ -20,6 +21,7 @@ export const Event = EnumType(
         "Running",
         "Error",
         "CleanErrors",
+        "Death",
         "Unknown"
     ]
 );
@@ -102,7 +104,7 @@ const MatrixType = () => (cases) => {
     cases.Matrix.prototype.getTile = function(pos){
         return this.getPosition(pos)
             .map(getTile)
-            .ifNone(() => Tile.Wall);
+            .onNone(() => Tile.Wall);
     }
     cases.Matrix.prototype.setTile = function(pos,value) {
         const data = this.get()
@@ -122,7 +124,7 @@ export const Matrix = Union({
             return this.Matrix(mat)
         },
         fromDimensions(x,y,init){
-
+            return this.Matrix(rangeOf(x,init).map(() => rangeOf(y,init)))
         },
         square(x){ return this.fromDimensions(x,x) }
     }

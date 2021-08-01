@@ -23,6 +23,7 @@ function App() {
       Console: () => console.log(...data.args.map(x => isSnake(x) ? hideSnake(x) : x)),
       Persistance: () => setDebugger(prev => ({ ...prev, persistance: data })),
       Running: () => setDebugger(prev => ({ ...prev, running: data })),
+      Death: () => setDebugger(prev => ({ ...prev, dead: data })),
       Error: () => setDebugger(prev => ({ ...prev, errors: [...(prev.errors ?? []), data] })),
       CleanErrors: () => setDebugger(prev => ({ ...prev, errors: undefined})),
       _: () => console.log(event,data)

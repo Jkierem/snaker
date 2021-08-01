@@ -118,11 +118,15 @@ const bundleCode = (code) => {
 }
 
 const addPersistanceEvent = (worker,context,continuation) => {
+    let action = Maybe.None();
     worker.addEventListener("message", ({ data }) => {
         const { type, ...extra } = data;
         if(type === "Persistance"){
             worker.terminate();
-            continuation(data);
+            continuation([data,action]);
+        } else if(type === "SnakeAction"){
+            const { value } = extra;
+            action = Maybe.Just(value)
         } else {
             context.topic.emit(Event.fromString(type),extra)
         }
@@ -138,11 +142,12 @@ const startWorker = (worker, context, minified) => {
 export const spawnWorker = async (context) => {
     const {
         code,
-        snake,
-        world,
         persistance,
+        engine: {
+            snake,
+            world,
+        },
     } = context;
-
     const pId =`Persistance_${makeId(8)}`;
     const noOpId = `noOp_${makeId(8)}`;
     const codeWithRuntime = addRuntime(snake,world,persistance,pId,noOpId)(code)
