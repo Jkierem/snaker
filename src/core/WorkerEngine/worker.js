@@ -20,6 +20,10 @@ return `const Snake = {
         type: "SnakeAction",
         value: "right"
     }),
+    moveForward: () => self.postMessage({ 
+        type: "SnakeAction",
+        value: "forward"
+    }),
     body: ${deepStringifyArray(snake.slice(1))},
     head: ${deepStringifyArray(snake[0])},
     length: ${snake.length}
@@ -126,7 +130,7 @@ const addPersistanceEvent = (worker,context,continuation) => {
             continuation([data,action]);
         } else if(type === "SnakeAction"){
             const { value } = extra;
-            action = Maybe.Just(value)
+            action = Maybe.fromPredicate(() => value !== "forward", value);
         } else {
             context.topic.emit(Event.fromString(type),extra)
         }

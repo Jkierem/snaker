@@ -21,4 +21,15 @@ body {
   display: block;
   width: 50%;
   height: 100vh;
+  transition: filter 0.2s linear;
+}
+.workspace-container {
+  &--blur {
+    filter: blur(5px) brightness(30%);
+  }
+}
+.snake-container {
+  &--blur {
+    filter: blur(5px) brightness(30%);
+  }
 }

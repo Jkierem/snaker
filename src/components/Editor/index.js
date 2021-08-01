@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import AceEditor from "react-ace"
 import gcn from "getclassname"
+import StorageObject from '../../middleware/localStorage';
 import { TopicContext } from '../../core/topic';
 import { Event } from "../../core/types"
 import { getVariant, Maybe } from 'jazzi';
-import StorageObject from '../../middleware/localStorage';
 import { useDebugger } from '../../core/debugger';
 import { example } from '../../resources/messages';
 import "./Editor.scss"
@@ -84,18 +84,22 @@ const parseValue = (val) => {
   }
 }
 
-const Editor = (props) => {
+const Editor = React.forwardRef((props,ref) => {
   const debuggerData = useDebugger();
   const { persistance, running, errors, dead } = debuggerData
   const annotations = errors ? errors.map(x => ({ ...x, type: "error" })) : []
   const persistanceKeys = Object.keys(persistance ?? {}).sort()
   const [code, setCode] = useState('');
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const editorRef = useRef();
 
   useEffect(() => {
     StorageObject.load().then(setCode);
   },[])
+
+  useImperativeHandle(ref, () => ({
+    showExample: () => setCode(example)
+  }))
 
   const handleCodeChange = (code) => {
     setCode(code)
@@ -108,7 +112,10 @@ const Editor = (props) => {
     evt.match({
       Play: () => topic.emit(evt, code),
       Save: () => topic.emit(evt, code),
-      Help: () => setCode(example),
+      Help: () => {
+        topic.emit(evt);
+        topic.emit(Event.Stop)
+      },
       _: () => topic.emit(evt)
     })
   }
@@ -149,14 +156,14 @@ const Editor = (props) => {
           type={Event.Help}
           onClick={handleEvent}
         />
-        <EventButton 
+        {/* <EventButton 
           type={Event.Save}
           onClick={handleEvent}
         />
         <EventButton 
           type={Event.Load}
           onClick={handleEvent}
-        />
+        /> */}
       </div>
       <AceEditor
         width="100%"
@@ -214,6 +221,6 @@ const Editor = (props) => {
       </div>
     </>
   )
-}
+})
 
 export default Editor;
