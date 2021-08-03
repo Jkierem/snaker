@@ -75,7 +75,7 @@ self.onmessage = async function(e){
                     type: "Persistance",
                     value: ${pId}
                 })
-            },500)
+            },0)
         }
     }
 };

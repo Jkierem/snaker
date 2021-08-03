@@ -8,7 +8,7 @@
     "@testing-library/user-event": "^12.1.10",
     "ace-builds": "^1.4.12",
     "getclassname": "^2.1.2",
-    "jazzi": "^1.5.1",
+    "jazzi": "^1.7.0",
     "jazzi-observable": "^1.0.3",
     "react": "^17.0.2",
     "react-ace": "^9.4.1",

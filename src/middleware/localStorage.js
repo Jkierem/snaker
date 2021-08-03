@@ -1,5 +1,5 @@
 import { Maybe } from "jazzi";
-import { helpMessage, defaultStamp } from "../resources/messages";
+import { helpMessage } from "../resources/messages";
 import { range } from "../resources/utils";
 
 const codeKey = "__SNAKER_STORED_CODE__"
@@ -19,7 +19,7 @@ const StorageObject = {
         return stamps;
     },
     getStamps(){
-        return this.getKey(timestampKey, () => range(0,10).map(() => defaultStamp))
+        return this.getKey(timestampKey, () => range(0,10).map(() => "-- empty --"))
     },
     loadSlot(slot){
         return this.getKey(slotKey(slot),"")

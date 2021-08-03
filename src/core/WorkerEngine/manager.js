@@ -1,6 +1,5 @@
 import { Maybe } from "jazzi";
 import { Event } from "../types";
-import { mkEngine } from "../GameEngine"
 import { parseMinifyError, parseRuntimeError } from "./errorMapper";
 import { spawnWorker, terminateWorker } from "./worker"
 
@@ -23,9 +22,10 @@ const mkContext = () => ({
         return this;
     },
     partialCopy(){
+        this.engine.reset()
         return mkContext()
             .setTopic(this.topic)
-            .setEngine(mkEngine())
+            .setEngine(this.engine)
     },
     setCompilationData(minifiedResult){
         this.compilationData = minifiedResult;
@@ -37,7 +37,7 @@ const mkContext = () => ({
 })
 
 const WorkerManager = () => {
-    let context = mkContext().setEngine(mkEngine());
+    let context = mkContext();
     return {
         reset(){
             context = context.partialCopy();
@@ -55,7 +55,6 @@ const WorkerManager = () => {
             this.terminate()
             return spawnWorker(context)
             .then(([persistanceData, desiredAction]) => {
-                // console.log(desiredAction.get())
                 desiredAction
                 .effect((action) => {
                     if( action === "right" ){
@@ -77,7 +76,8 @@ const WorkerManager = () => {
                 err?.match?.({
                     MinifyError: (data) => {
                         context.topic.emit(Event.Error, parseMinifyError(data))
-                    }
+                    },
+                    _: () => console.error(err)
                 })
             })
         },
@@ -91,6 +91,7 @@ const WorkerManager = () => {
             .effect(() => context.setWorker(undefined))
         },
         setTopic: (t) => context.setTopic(t),
+        setEngine: (t) => context.setEngine(t),
         handleRuntimeError(error){
             this.stop()
             context.topic.emit(Event.Error, parseRuntimeError(error, context.compilationData))

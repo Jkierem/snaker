@@ -27,21 +27,44 @@ const moveSnake = (snake,dir) => {
     ]
 }
 
-export const step = (mat, prevSnake, snakeDir, prevScore) => {
+export const step = (mat, prevSnake, snakeDir, prevScore, prevWalls, randomPos, randomWall) => {
     const matrix = Matrix.of(mat);
     const snake = [...prevSnake];
     const snakeHead = getHead(snake);
     const nextPos = move(snakeHead,snakeDir)
     const nextTile = matrix.getTile(nextPos);
+    const expectedWalls = Math.floor(prevScore / 4)
+    const needsWall = prevWalls < expectedWalls && prevWalls < 20;
+
     return nextTile.match({
         Empty: () => {
             const nextSnake = moveSnake(removeTail(snake),snakeDir)
             const nextIsDead = nextSnake.slice(1).map(Position.fromArray).some(p => p.equals(nextPos))
+            let nextMatrix = matrix
+            if( needsWall ){
+                let nextWall = randomWall();
+                while( 
+                    !matrix.getTile(nextWall).isEmpty() ||
+                    !matrix.getTile(nextWall.mapX(inc)).isEmpty() ||
+                    !matrix.getTile(nextWall.mapX(dec)).isEmpty() || 
+                    !matrix.getTile(nextWall.mapY(inc)).isEmpty() || 
+                    !matrix.getTile(nextWall.mapY(dec)).isEmpty() || 
+                    !matrix.getTile(nextWall.mapX(inc).mapY(inc)).isEmpty() || 
+                    !matrix.getTile(nextWall.mapX(dec).mapY(inc)).isEmpty() || 
+                    !matrix.getTile(nextWall.mapX(inc).mapY(dec)).isEmpty() || 
+                    !matrix.getTile(nextWall.mapX(dec).mapY(dec)).isEmpty() ||
+                    nextSnake.map(Position.fromArray).some(p => p.equals(nextWall))
+                ) {
+                    nextWall = randomWall()
+                }
+                nextMatrix = nextMatrix.setTile(nextWall, 2);
+            }
             return {
                 score: prevScore,
-                world: matrix.get(),
+                world: nextMatrix.get(),
                 snake: nextSnake,
                 isDead: nextIsDead,
+                walls: needsWall ? prevWalls + 1 : prevWalls
             }
         },
         Wall: () => {
@@ -49,17 +72,28 @@ export const step = (mat, prevSnake, snakeDir, prevScore) => {
                 score: prevScore,
                 world: matrix.get(),
                 isDead: true,
-                snake,
+                snake: moveSnake(removeTail(snake),snakeDir),
+                walls: prevWalls
             }
         },
         Fruit: () => {
             const nextSnake = moveSnake(snake,snakeDir)
-            const nextIsDead = nextSnake.slice(1).map(Position.fromArray).some(p => p.equals(nextPos))
+            const nextSnakePos = nextSnake.map(Position.fromArray)
+            const nextIsDead = nextSnakePos.slice(1).some(p => p.equals(nextPos))
+            let nextFruit = randomPos()
+            const nextMatrix = matrix.setTile(nextPos, 0)
+            while( 
+                nextSnakePos.some(pos => pos.equals(nextFruit)) ||
+                nextMatrix.getTile(nextFruit).isWall()
+            ){
+                nextFruit = randomPos();
+            }
             return {
                 score: prevScore + 1,
-                world: matrix.get(),
+                world: nextMatrix.setTile(nextFruit, 1).get(),
                 snake: nextSnake,
                 isDead: nextIsDead,
+                walls: prevWalls
             }
         }
     })

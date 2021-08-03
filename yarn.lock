@@ -6194,17 +6194,17 @@ jazzi-observable@^1.0.3:
   dependencies:
     jazzi "^1.6.1"
 
-jazzi@^1.5.1:
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/jazzi/-/jazzi-1.5.1.tgz#7fb7db0e77157b37608a81e12524a13a21ebdbcf"
-  integrity sha512-IJEzATgLuE/PU0H8xDeJqTwIi9xoQz/FHF85Da0mgpzMBuSyxSwthJAcSH9GjndHc2ZjAe2Y+UDi7jX/CXCIWw==
-  dependencies:
-    ramda "0.27.0"
-
 jazzi@^1.6.1:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/jazzi/-/jazzi-1.6.1.tgz#3b0b52d6f790fa5aa5065d19610711677d72dd65"
   integrity sha512-fUxycc/4vp1KOXBMqxZLKRKn1dvEZLAFv6r+CNYaANLEI2P2SiGA9Bv/y6kj4P+l+PyzOUqjWaYqxeClp9b2Fw==
+  dependencies:
+    ramda "0.27.0"
+
+jazzi@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/jazzi/-/jazzi-1.7.0.tgz#b852fb5c6904d365ad20b0c50bbabcc4bea0ca70"
+  integrity sha512-iHnKaIF3O+7pmCd5EA8ZFOuv4Kcr9Ug5Fr4gnSvpaZe0XN/l5nn8s9KLtIl/4StmwH+biMTl6TIx7qC5MUnyBg==
   dependencies:
     ramda "0.27.0"
 

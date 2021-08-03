@@ -1,10 +1,8 @@
 export const helpMessage = "// For info on how to play click on help"
 
-export const example = `// This keeps the snake alive and counts the number of turns
-// Also counts the amount of times the code has run
+export const example = `// This is the simplest and slowest method and will surely not reach 100
 // Remember to open the console to see your console.log calls
 const [turns, setTurns] = useState('turns',0);
-const [ticks, setTicks] = useState('ticks',0);
 const inc = x => x + 1;
 
 const FREE  = 0;
@@ -22,10 +20,21 @@ const neck = Snake.body[0];
 const direction = head.map((val,idx) => val - neck[idx]);
 const nextTile = head.map((val,idx) => val + direction[idx]);
 
-if( isOutOfBounds(nextTile) || isWall(nextTile) ){
+const fruit = World.reduce((acc,next,x) => {
+    if( next.includes(FRUIT) ){
+        return [x, next.indexOf(FRUIT)]
+    }
+    return acc
+} ,[])
+
+const fruitIsToTheRight = 
+    head[0] <= fruit[0] 
+    && head[1] === fruit[1] 
+    && direction[0] !== 1;
+
+if( isOutOfBounds(nextTile) || isWall(nextTile) || fruitIsToTheRight ){
     Snake.turnRight();
     setTurns(inc);
     console.log(\`Turning right for the \${turns + 1}-nth time\`);
 }
-setTicks(inc);
 `

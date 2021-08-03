@@ -6,9 +6,11 @@ import { Topic, TopicContext } from "./core/topic"
 import { useEffect, useRef, useState } from "react"
 import { handleEvent } from "./core/WorkerEngine"
 import { DebuggerContext } from "./core/debugger"
+import { mkEngine } from "./core/GameEngine"
 import "./App.scss"
 
 const topic = Topic();
+const gameEngine = mkEngine()
 const isSnake = x => typeof x === "object" && x?.isSnake
 const hideSnake = x => {
   const h = { ...x, turnLeft: () => {}, turnRight: () => {}, moveForward: () => {} }
@@ -42,7 +44,7 @@ function App() {
   }
 
   useEffect(() => {
-    return topic.subscribe(handleEvent(topic,handleReactEffects))
+    return topic.subscribe(handleEvent(topic,gameEngine,handleReactEffects))
     // eslint-disable-next-line
   },[])
 
@@ -56,7 +58,7 @@ function App() {
         <div className={appCl}>
           <HelpModal open={help} onClose={handleCloseModal} />
           <div className={snakeCl}>
-            <Game />
+            <Game snake={gameEngine.snake} world={gameEngine.world} />
           </div>
           <div className={editorCl}>
             <Editor ref={editorRef}/>

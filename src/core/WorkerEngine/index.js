@@ -11,8 +11,9 @@ const saveCode = (code) => {
     StorageObject.save(code)
 }
 
-export const handleEvent = (topicRef,upperEventHandler) => ({ event, data }) => {
+export const handleEvent = (topicRef,gameEngine,upperEventHandler) => ({ event, data }) => {
     workerManager.setTopic(topicRef)
+    workerManager.setEngine(gameEngine)
     const relayEvent = () => upperEventHandler({ event, data })
     event.match({
         Play: () => workerManager.start(data),
