@@ -1,3 +1,4 @@
+import { Maybe } from "jazzi"
 import { Matrix, Position } from "../types"
 
 const dec = x => x - 1
@@ -27,6 +28,48 @@ const moveSnake = (snake,dir) => {
     ]
 }
 
+const hasPosition = (snake,pos) => snake.map(Position.fromArray).some(p => p.equals(pos));
+
+const getNextWall = (matrix, snake, randomWall, needsWall) => {
+    if( !needsWall ){
+        return Maybe.None();
+    }
+    let nextWall = randomWall()
+    let tries = 0;
+    while(
+        tries < 100 && (
+        !matrix.getTile(nextWall).isEmpty() ||
+        !matrix.getTile(nextWall.mapX(inc)).isEmpty() ||
+        !matrix.getTile(nextWall.mapX(dec)).isEmpty() || 
+        !matrix.getTile(nextWall.mapY(inc)).isEmpty() || 
+        !matrix.getTile(nextWall.mapY(dec)).isEmpty() || 
+        !matrix.getTile(nextWall.mapX(inc).mapY(inc)).isEmpty() || 
+        !matrix.getTile(nextWall.mapX(dec).mapY(inc)).isEmpty() || 
+        !matrix.getTile(nextWall.mapX(inc).mapY(dec)).isEmpty() || 
+        !matrix.getTile(nextWall.mapX(dec).mapY(dec)).isEmpty() ||
+        hasPosition(snake, nextWall))
+    ) {
+        nextWall = randomWall()
+        tries += 1;
+    }
+    return Maybe.fromPredicate(() => tries < 100, nextWall)
+}
+
+const getNextFruit = (matrix, snake, randomPos) => {
+    let tries = 0;
+    let nextFruit = randomPos()
+    const isSnake = (p) => snake.some(pos => pos.equals(p))
+    while( 
+        tries < 100 &&
+        (isSnake(nextFruit) ||
+        matrix.getTile(nextFruit).isWall())
+    ){
+        nextFruit = randomPos();
+        tries += 1;
+    }
+    return Maybe.fromPredicate(() => tries < 100, nextFruit)
+}
+
 export const step = (mat, prevSnake, snakeDir, prevScore, prevWalls, randomPos, randomWall) => {
     const matrix = Matrix.of(mat);
     const snake = [...prevSnake];
@@ -41,30 +84,18 @@ export const step = (mat, prevSnake, snakeDir, prevScore, prevWalls, randomPos, 
             const nextSnake = moveSnake(removeTail(snake),snakeDir)
             const nextIsDead = nextSnake.slice(1).map(Position.fromArray).some(p => p.equals(nextPos))
             let nextMatrix = matrix
-            if( needsWall ){
-                let nextWall = randomWall();
-                while( 
-                    !matrix.getTile(nextWall).isEmpty() ||
-                    !matrix.getTile(nextWall.mapX(inc)).isEmpty() ||
-                    !matrix.getTile(nextWall.mapX(dec)).isEmpty() || 
-                    !matrix.getTile(nextWall.mapY(inc)).isEmpty() || 
-                    !matrix.getTile(nextWall.mapY(dec)).isEmpty() || 
-                    !matrix.getTile(nextWall.mapX(inc).mapY(inc)).isEmpty() || 
-                    !matrix.getTile(nextWall.mapX(dec).mapY(inc)).isEmpty() || 
-                    !matrix.getTile(nextWall.mapX(inc).mapY(dec)).isEmpty() || 
-                    !matrix.getTile(nextWall.mapX(dec).mapY(dec)).isEmpty() ||
-                    nextSnake.map(Position.fromArray).some(p => p.equals(nextWall))
-                ) {
-                    nextWall = randomWall()
-                }
-                nextMatrix = nextMatrix.setTile(nextWall, 2);
-            }
+            let nextWalls = prevWalls
+            getNextWall(matrix,nextSnake,randomWall,needsWall)
+                .effect(nextWall => {
+                    nextMatrix = nextMatrix.setTile(nextWall, 2);
+                    nextWalls += 1
+                });
             return {
                 score: prevScore,
                 world: nextMatrix.get(),
                 snake: nextSnake,
                 isDead: nextIsDead,
-                walls: needsWall ? prevWalls + 1 : prevWalls
+                walls: nextWalls
             }
         },
         Wall: () => {
@@ -80,17 +111,14 @@ export const step = (mat, prevSnake, snakeDir, prevScore, prevWalls, randomPos, 
             const nextSnake = moveSnake(snake,snakeDir)
             const nextSnakePos = nextSnake.map(Position.fromArray)
             const nextIsDead = nextSnakePos.slice(1).some(p => p.equals(nextPos))
-            let nextFruit = randomPos()
-            const nextMatrix = matrix.setTile(nextPos, 0)
-            while( 
-                nextSnakePos.some(pos => pos.equals(nextFruit)) ||
-                nextMatrix.getTile(nextFruit).isWall()
-            ){
-                nextFruit = randomPos();
-            }
+            let nextMatrix = matrix.setTile(nextPos, 0)
+            getNextFruit(nextMatrix, nextSnakePos, randomPos)
+            .effect(fruit => {
+                nextMatrix = nextMatrix.setTile(fruit,1)
+            })
             return {
                 score: prevScore + 1,
-                world: nextMatrix.setTile(nextFruit, 1).get(),
+                world: nextMatrix.get(),
                 snake: nextSnake,
                 isDead: nextIsDead,
                 walls: prevWalls

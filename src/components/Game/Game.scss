@@ -177,7 +177,7 @@
                 }
 
                 &--wall {
-                    @include box(24px);
+                    @include box(25px);
                     border-radius: 5px;
                     background-color: gray;
                 }

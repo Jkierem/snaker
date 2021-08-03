@@ -112,7 +112,7 @@ const Editor = React.forwardRef((props,ref) => {
     evt.match({
       Play: () => topic.emit(evt, code),
       Save: () => topic.emit(evt, code),
-      Help: () => {
+      "Help | Options": () => {
         topic.emit(evt);
         topic.emit(Event.Stop)
       },
@@ -154,6 +154,10 @@ const Editor = React.forwardRef((props,ref) => {
         />
         <EventButton 
           type={Event.Help}
+          onClick={handleEvent}
+        />
+        <EventButton 
+          type={Event.Options}
           onClick={handleEvent}
         />
         {/* <EventButton 

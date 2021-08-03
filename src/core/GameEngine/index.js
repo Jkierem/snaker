@@ -1,22 +1,18 @@
 import { rangeOf } from "../../resources/utils";
-import { Direction, Matrix, Position } from "../types";
+import { Delay, Direction, Matrix, Position } from "../types";
 import { step } from "./step";
 import { mkRandom, randomSeed } from "./rand";
 
+let seed = randomSeed()
+let randomGen = mkRandom(seed)
+const random = (min,max) => {
+    const r = randomGen.value;
+    randomGen = randomGen.next()
+    return Math.floor(r % max) + min; 
+}
+const randomInsidePosition = () => Position.random2D(() => random(0,15))
+const randomWall = () => Position.random2D(() => random(1,13))
 const mkSnake = () => rangeOf(3,0).map((_,idx) => ([6+idx,7]))
-let randomGen = mkRandom(randomSeed())
-const randomInside = () => {
-    randomGen = randomGen.next()
-    const r = randomGen.value;
-    return Math.floor(r % 14); 
-}
-const randomConstrained = () => {
-    randomGen = randomGen.next()
-    const r = randomGen.value;
-    return Math.floor(r % 13) + 1; 
-}
-const randomInsidePosition = () => Position.random2D(randomInside)
-const randomWall = () => Position.random2D(randomConstrained)
 const mkMatrix = () => Matrix.fromDimensions(15,15,0).setTile(randomInsidePosition(),1).get()
 
 export const mkEngine = () => {
@@ -26,6 +22,8 @@ export const mkEngine = () => {
     let isDead = false;
     let score = 0;
     let walls = 0;
+    let delay = Delay.Normal();
+    let deterministic = false;
 
     return {
         turnLeft: () => {
@@ -59,6 +57,9 @@ export const mkEngine = () => {
             walls = nextWalls;
         },
         reset(){
+            if( deterministic ){
+                randomGen = mkRandom(seed)
+            }
             world = mkMatrix();
             snake =  mkSnake();
             snakeDir = Direction.Left;
@@ -66,8 +67,28 @@ export const mkEngine = () => {
             score = 0;
             walls = 0;
         },
+        makeDeterministic(newSeed){
+            seed = newSeed
+            randomGen = mkRandom(seed);
+            deterministic = true;
+        },
+        makeNonDeterministic(){
+            seed = randomSeed()
+            randomGen = mkRandom(seed);
+            deterministic = false;
+        },
+        setDelay(d){
+            delay = Delay.toEnum(d); 
+        },
+        setSeed(d){
+            seed = d
+        },
         get world(){ return world },
         get snake(){ return snake },
-        get isDead(){ return isDead }
+        get score(){ return score },
+        get delay(){ return delay },
+        get isDead(){ return isDead },
+        get seed(){ return seed },
+        get deterministic(){ return deterministic },
     }
 }

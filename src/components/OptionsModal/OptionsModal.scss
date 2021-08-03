@@ -5,7 +5,7 @@
     align-items: $align;
 }
 
-.help {
+.options {
     @include flex(column, center);
     z-index: 10;
     position: absolute;
@@ -20,9 +20,7 @@
     
     &__content {
         @include flex();
-        min-width: 600px;
         width: 50%;
-        min-height: 80%;
         padding: 24px;
         background-color: white;
         box-shadow: 
@@ -34,10 +32,6 @@
         position: relative;
         transform: translateY(0);
 
-        p {
-            margin: 10px;
-        }
-
         &--hidden {
             transform: translateY(-100%);
         }
@@ -48,8 +42,8 @@
         user-select: none;
         color: white;
         background-color: #43a047;
-        &--alt {
-            background-color: #1565c0;
+        &--danger {
+            background-color: #b71c1c;
         }
         border-radius: 4px;
         margin: 16px;
@@ -64,5 +58,13 @@
             0px 3px 1px -2px rgba(0, 0, 0, 0.2),
             0px 2px 2px 0px rgba(0, 0, 0, 0.14),
             0px 1px 5px 0px rgba(0,0,0,.12);
+    }
+
+    &__field {
+        @include flex(row, flex-start, center);
+        width: 100%;
+        & > * {
+            margin: 16px;
+        }
     }
 }

@@ -1,6 +1,6 @@
 export const helpMessage = "// For info on how to play click on help"
 
-export const example = `// This is the simplest and slowest method and will surely not reach 100
+export const example = `// This is the simplest and slowest method and will surely die when walls spawn
 // Remember to open the console to see your console.log calls
 const [turns, setTurns] = useState('turns',0);
 const inc = x => x + 1;

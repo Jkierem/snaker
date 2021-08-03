@@ -9,7 +9,7 @@ const deepStringifyArray = (arr) => {
     return `[${[arr].flat(1).map(x => Array.isArray(x) ? deepStringifyArray(x) : x ).join(",")}]`
 }
 
-export const addRuntime = (snake,world,persistantData,pId,noOpId) => (code) => {
+export const addRuntime = (snake,world,persistantData,pId,noOpId,delay=0) => (code) => {
 return `const Snake = {
     isSnake: true,
     turnLeft: () => self.postMessage({ 
@@ -75,7 +75,7 @@ self.onmessage = async function(e){
                     type: "Persistance",
                     value: ${pId}
                 })
-            },0)
+            },${delay})
         }
     }
 };
@@ -148,13 +148,14 @@ export const spawnWorker = async (context) => {
         code,
         persistance,
         engine: {
+            delay,
             snake,
             world,
         },
     } = context;
     const pId =`Persistance_${makeId(8)}`;
     const noOpId = `noOp_${makeId(8)}`;
-    const codeWithRuntime = addRuntime(snake,world,persistance,pId,noOpId)(code)
+    const codeWithRuntime = addRuntime(snake,world,persistance,pId,noOpId,delay.get())(code)
     const minified = await uglifyCode(noOpId,codeWithRuntime);
     const uglified = Either
         .fromPredicate(() => !minified.error, minified.code)

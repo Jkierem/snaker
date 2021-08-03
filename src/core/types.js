@@ -1,4 +1,4 @@
-import { EnumType, Functor, Maybe, Union } from "jazzi"
+import { Enum, EnumType, Functor, Maybe, Union } from "jazzi"
 import { rangeOf } from "../resources/utils";
 
 export const Direction = EnumType("Dir",["Up","Down","Left","Right","UpLeft","UpRight","DownLeft","DownRight"])
@@ -40,6 +40,7 @@ export const Event = EnumType(
         "Clear",
         "Save",
         "Load",
+        "Options",
         "RuntimeError",
         "Console",
         "SnakeAction",
@@ -186,4 +187,16 @@ export const Matrix = Union({
         square(x){ return this.fromDimensions(x,x) },
         copy(mat){ return this.Matrix(mat).copy().get() }
     }
+})
+
+export const Delay = Union({
+    name: "Delay",
+    cases: {
+        Slow  : () => 500,
+        Normal: () => 250,
+        Fast  : () => 0,
+    },
+    config: { noHelpers: true },
+    extensions: [ Enum() ],
+    constructors: {},
 })

@@ -3,6 +3,7 @@ import { helpMessage } from "../resources/messages";
 import { range } from "../resources/utils";
 
 const codeKey = "__SNAKER_STORED_CODE__"
+const firstTimeKey = "__SNAKER_FLAG__"
 const timestampKey = "__STAMPS__"
 const slotKey = x => `__SLOT__${x}`
 
@@ -38,6 +39,12 @@ const StorageObject = {
                 .onNone(defaultData)
         })
     },
+    getFirstTime(){
+        return this.getKey(firstTimeKey,false)
+    },
+    setFirstTimeKey(){
+        this.setKey(firstTimeKey,true)
+    }
 }
 
 export default StorageObject
