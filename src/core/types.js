@@ -1,4 +1,4 @@
-import { Enum, EnumType, Functor, Maybe, Union } from "jazzi"
+import { BoxedEnumType, Enum, EnumType, Functor, Maybe, Union } from "jazzi"
 import { rangeOf } from "../resources/utils";
 
 export const Direction = EnumType("Dir",["Up","Down","Left","Right","UpLeft","UpRight","DownLeft","DownRight"])
@@ -28,7 +28,28 @@ const fromTuple = (x,y) => {
     }
 }
 
-export const Tile = EnumType("Tile",["Empty","Fruit","Wall"]);
+export const BoxedTile = BoxedEnumType("BoxedTile",["Empty","Fruit","Wall","Head","Body","Tail"])
+BoxedTile.mapToBodyPart = (l) => (coord,idx,snake) => {
+  if( idx === 0 ){
+    const neck = Position.fromArray(snake[idx + 1])
+    const head = Position.fromArray(coord)
+    const direction = head.substract(neck).toDirection();
+    return BoxedTile.Head(direction)
+  } else if (idx === l - 1){
+    const preTail = Position.fromArray(snake[idx - 1])
+    const tail = Position.fromArray(coord)
+    const direction = preTail.substract(tail).toDirection();
+    return BoxedTile.Tail(direction)
+  } else {
+    const prev = Position.fromArray(snake[idx - 1])
+    const curr = Position.fromArray(coord)
+    const next = Position.fromArray(snake[idx + 1])
+    const prevDir = curr.substract(prev).toDirection()
+    const nextDir = next.substract(curr).toDirection()
+    return BoxedTile.Body([prevDir,nextDir])
+  }
+}
+
 export const Event = EnumType(
     "EditorEvent",
     [
@@ -55,7 +76,6 @@ export const Event = EnumType(
 Event.fromString = (name) => {
     return Event[name] ?? Event.Unknown
 }
-export const getTile = (n) => Tile[["Empty","Fruit","Wall"][n]];
 
 const defineIndexGetter = (cases, name, index) => {
     Object.defineProperty(cases.Position.prototype, name, {
@@ -145,8 +165,8 @@ const MatrixType = () => (cases) => {
     }
     cases.Matrix.prototype.getTile = function(pos){
         return this.getPosition(pos)
-            .map(getTile)
-            .onNone(() => Tile.Wall);
+            .map(p => typeof p === "number" ? BoxedTile.toEnum(p) : p)
+            .onNone(() => BoxedTile.Wall());
     }
     cases.Matrix.prototype.setTile = function(pos,value) {
         const data = this.get()
@@ -185,7 +205,7 @@ export const Matrix = Union({
             return this.Matrix(rangeOf(x,init).map(() => rangeOf(y,init)))
         },
         square(x){ return this.fromDimensions(x,x) },
-        copy(mat){ return this.Matrix(mat).copy().get() }
+        copy(mat){ return this.Matrix(mat).copy() }
     }
 })
 

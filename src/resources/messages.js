@@ -10,8 +10,6 @@ const FRUIT = 1;
 const WALL  = 2;
 
 const is = type => ([x,y]) => World[x][y] === type;
-const isFree = is(FREE);
-const isFruit = is(FRUIT);
 const isWall = is(WALL);
 const isOutOfBounds = ([x,y]) => x < 0 || x >= 15 || y < 0 || y >= 15 ;
 
@@ -20,12 +18,17 @@ const neck = Snake.body[0];
 const direction = head.map((val,idx) => val - neck[idx]);
 const nextTile = head.map((val,idx) => val + direction[idx]);
 
-const fruit = World.reduce((acc,next,x) => {
-    if( next.includes(FRUIT) ){
-        return [x, next.indexOf(FRUIT)]
+function findFruit(){
+    for(let i = 0 ; i < World.length ; i++ ){
+        for(let j = 0 ; j < World[i].length ; j++ ){
+            if( World[i][j] === FRUIT ){
+                return [i,j]
+            }
+        }
     }
-    return acc
-} ,[])
+}
+
+const fruit = findFruit();
 
 const fruitIsToTheRight = 
     head[0] <= fruit[0] 
