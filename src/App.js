@@ -34,6 +34,22 @@ const toNumber = (str) => {
     .onLeft(() => 0)
 }
 
+const Version = () => {
+  return <div className="version-container">
+    <a 
+    className="version"
+    title="Check out how this is made" 
+    rel="noreferrer" 
+    target="_blank" 
+    href="https://github.com/Jkierem/snaker">
+      v1.1.0 
+    </a>
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" title="This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.">
+      <img alt="Creative Commons License" style={{"border-width":"0"}} src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" />
+    </a>
+  </div>
+}
+
 function App() {
   const [debuggerData, setDebugger] = useState({})
   const [help, setHelp , toggleHelp] = useBooleanState();
@@ -112,6 +128,7 @@ function App() {
           <div className={editorCl}>
             <Editor ref={editorRef}/>
           </div>
+          <Version />
         </div>
       </TopicContext.Provider>
     </DebuggerContext.Provider>

@@ -15,6 +15,24 @@ body {
   flex-direction: row;
 }
 
+.version-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  margin: 16px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.version {
+  cursor: pointer;
+  font-style: normal;
+  text-decoration: none;
+  margin-right: 6px;
+}
+
 .workspace-container, 
 .snake-container {
   position: relative;
