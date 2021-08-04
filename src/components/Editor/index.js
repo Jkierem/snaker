@@ -10,12 +10,11 @@ import { example } from '../../resources/messages';
 import "./Editor.scss"
 
 import "ace-builds/webpack-resolver";
-import "ace-builds/src-noconflict/theme-monokai";
-import "ace-builds/src-noconflict/ext-language_tools";
-import 'ace-builds/src-min-noconflict/ext-searchbox';
-import "ace-builds/src-noconflict/keybinding-vscode";
-import "ace-builds/src-noconflict/snippets/javascript";
-import "ace-builds/src-noconflict/snippets/text";
+import "ace-builds/src-min-noconflict/theme-monokai";
+import "ace-builds/src-min-noconflict/ext-language_tools";
+import "ace-builds/src-min-noconflict/keybinding-vscode";
+import "ace-builds/src-min-noconflict/snippets/javascript";
+import "ace-builds/src-min-noconflict/snippets/text";
 
 const toolbarCl = gcn({ base: 'toolbar' })
 const buttonCl = toolbarCl.element('button')
