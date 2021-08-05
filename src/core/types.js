@@ -2,7 +2,7 @@ import { BoxedEnumType, Enum, EnumType, Functor, Maybe, Union } from "jazzi"
 import { rangeOf } from "../resources/utils";
 
 export const Direction = EnumType("Dir",["Up","Down","Left","Right","UpLeft","UpRight","DownLeft","DownRight"])
-const fromTuple = (x,y) => {
+Direction.fromTuple = (x,y) => {
     if( x < 0 ){
         if( y < 0 ){
             return Direction.UpLeft
@@ -92,13 +92,8 @@ const PositionType = () => (cases) => {
             return newVals;
         })
     }
-    cases.Position.prototype.mapN = function(n,fn){ return curryMapN(n)(fn) }
-    cases.Position.prototype.mapFirst = curryMapN(0)
-    cases.Position.prototype.mapSecond = curryMapN(1)
-    cases.Position.prototype.mapThird = curryMapN(2)
     cases.Position.prototype.mapX = curryMapN(0)
     cases.Position.prototype.mapY = curryMapN(1)
-    cases.Position.prototype.mapZ = curryMapN(2)
 
     cases.Position.prototype.substract = function(pos){
         return this.mapX(x => x - pos.x).mapY(y => y - pos.y);
@@ -109,7 +104,7 @@ const PositionType = () => (cases) => {
     }
 
     cases.Position.prototype.toDirection = function(){
-        return fromTuple(...this.normalize().get())
+        return Direction.fromTuple(...this.normalize().get())
     }
 
     cases.Position.prototype.equals = function(pos){
@@ -118,7 +113,6 @@ const PositionType = () => (cases) => {
  
     defineIndexGetter(cases,"x",0);
     defineIndexGetter(cases,"y",1);
-    defineIndexGetter(cases,"z",2);
 }
 export const Position = Union({
     name: "Position",

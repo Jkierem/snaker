@@ -9,7 +9,7 @@ const deepStringifyArray = (arr) => {
     return `[${[arr].flat(1).map(x => Array.isArray(x) ? deepStringifyArray(x) : x ).join(",")}]`
 }
 
-export const addRuntime = (snake,world,persistantData,pId,noOpId,delay=0) => (code) => {
+export const addRuntime = (snake,world,persistantData,pId,noOpId,delay) => (code) => {
 return `const Snake = {
     isSnake: true,
     turnLeft: () => self.postMessage({ 
