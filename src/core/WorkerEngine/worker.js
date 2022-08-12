@@ -1,4 +1,4 @@
-import { BoxedEnumType, Either, Maybe, Result } from "jazzi";
+import { BoxedEnumType, Either, Maybe } from "jazzi";
 import { Event } from "../types";
 import { makeId } from "../utils";
 import { minify } from "terser"
@@ -87,7 +87,7 @@ ${code}
 export const terminateWorker = (worker) => {
     return Maybe
         .fromNullish(worker)
-        .effect(worker => worker?.terminate?.())
+        .tap(worker => worker?.terminate?.())
 }
 
 const uglifyCode = async (noOpId,code) => {
@@ -113,11 +113,9 @@ const uglifyCode = async (noOpId,code) => {
 
 }
 
-const tryBlob = (code) => Result.attempt(() => new Blob([ code ],{ type: "text/javascript" }))
-
 const bundleCode = (code) => {
     return Either
-        .fromResult(tryBlob(code))
+        .attempt(() =>  new Blob([ code ],{ type: "text/javascript" }))
         .mapLeft(WorkerError.BundleError)
 }
 

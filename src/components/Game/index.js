@@ -61,7 +61,7 @@ const Game = ({ snake, world }) => {
     .forEach(([part,pos]) => {
       Maybe
       .fromPredicate(() => !worldCopy.getTile(pos).isWall())
-      .effect(() => worldCopy.setTile(pos,part))
+      .tap(() => worldCopy.setTile(pos,part))
     })
   return(
     <div className={WorldClass} >

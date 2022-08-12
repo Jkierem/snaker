@@ -1,5 +1,5 @@
 import React from "react"
-import Observable from "jazzi-observable"
+import { Observable } from "jazzi-observable"
 
 export const Topic = () => {
     let count = 0

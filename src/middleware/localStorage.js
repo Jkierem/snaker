@@ -1,50 +1,80 @@
-import { Maybe } from "jazzi";
-import { helpMessage } from "../resources/messages";
-import { range } from "../resources/utils";
+import { BoxedEnumType, Either, Maybe, Reader } from "jazzi";
+import { getCurrentVersion } from "../resources/version";
 
 const codeKey = "__SNAKER_STORED_CODE__"
 const firstTimeKey = "__SNAKER_FLAG__"
-const timestampKey = "__STAMPS__"
-const slotKey = x => `__SLOT__${x}`
+// const timestampKey = "__STAMPS__"
+const versionKey = "__SNAKER_VERSION__"
+// const slotKey = x => `__SLOT__${x}`
+
+const LoadResult = BoxedEnumType("LoadResult",["FirstTime","KnownUser"])
+
+const Base = {
+    get(key){
+        return Reader.from(({ get, decode }) => {
+            return Either
+                .fromNullish(undefined, get(key))
+                .map(decode)
+        })
+    },
+    set(key, value){
+        return Reader.from(({ set, encode }) => {
+            set(key, encode(value))
+        })
+    },
+}
+
+export const Env = {
+    set: (...args) => localStorage.setItem(...args),
+    encode: (data) => window.btoa(JSON.stringify({ data })),
+    get: (...args) => localStorage.getItem(...args),
+    decode: (data) => JSON.parse(window.atob(data)).data
+}
 
 const StorageObject = {
     save(code){
-        this.setKey(codeKey,code)
-    },
-    async saveSlot(slot,code){
-        const timestamp = Date.now()
-        const stamps = await this.getStamps();
-        stamps[slot] = timestamp;
-        this.setKey(timestampKey, JSON.stringify(stamps))
-        this.setKey(slotKey(slot),code);
-        return stamps;
-    },
-    getStamps(){
-        return this.getKey(timestampKey, () => range(0,10).map(() => "-- empty --"))
-    },
-    loadSlot(slot){
-        return this.getKey(slotKey(slot),"")
+        Base
+            .set(codeKey, code)
+            .run(Env)
     },
     load(){
-        return this.getKey(codeKey,helpMessage)
+
+        Base
+            .get(versionKey)
+            .run(Env)
+            .onLeft(() => {
+                Maybe
+                .fromNullish(localStorage.getItem(codeKey))
+                .fmap(encoded => window.atob(encoded))
+                .tap(legacyCode => Base.set(codeKey, legacyCode).run(Env))
+
+                Maybe
+                .fromNullish(localStorage.getItem(firstTimeKey))
+                .fmap(encoded => window.atob(encoded))
+                .tap(legacyFirst => Base.set(firstTimeKey, legacyFirst).run(Env))
+
+                Base.set(versionKey, getCurrentVersion()).run(Env)
+            });
+
+
+        return Base
+            .get(firstTimeKey)
+            .run(Env)
+            .fold(
+                () => LoadResult.FirstTime(""), 
+                () => LoadResult.KnownUser(
+                    Base
+                        .get(codeKey)
+                        .run(Env)
+                        .mapLeft(() => "")
+                        .unwrap()
+                )
+            )
+        
     },
-    setKey(key,value){
-        localStorage.setItem(key,window.btoa(value));
+    markAsKnownUser(){
+        return Base.set(firstTimeKey, true).run(Env)
     },
-    getKey(key,defaultData){
-        return Promise.resolve().then(() => {
-            return Maybe
-                .from(localStorage.getItem(key))
-                .fmap(window.atob)
-                .onNone(defaultData)
-        })
-    },
-    getFirstTime(){
-        return this.getKey(firstTimeKey,false)
-    },
-    setFirstTimeKey(){
-        this.setKey(firstTimeKey,true)
-    }
 }
 
 export default StorageObject

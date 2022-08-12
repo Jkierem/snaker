@@ -86,7 +86,7 @@ export const step = (mat, prevSnake, snakeDir, prevScore, prevWalls, randomPos, 
             let nextMatrix = matrix
             let nextWalls = prevWalls
             getNextWall(matrix,nextSnake,randomWall,needsWall)
-                .effect(nextWall => {
+                .tap(nextWall => {
                     nextMatrix = nextMatrix.setTile(nextWall, 2);
                     nextWalls += 1
                 });
@@ -113,7 +113,7 @@ export const step = (mat, prevSnake, snakeDir, prevScore, prevWalls, randomPos, 
             const nextIsDead = nextSnakePos.slice(1).some(p => p.equals(nextPos))
             let nextMatrix = matrix.setTile(nextPos, 0)
             getNextFruit(nextMatrix, nextSnakePos, randomPos)
-            .effect(fruit => {
+            .tap(fruit => {
                 nextMatrix = nextMatrix.setTile(fruit,1)
             })
             return {

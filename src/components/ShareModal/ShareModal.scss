@@ -1,0 +1,10 @@
+@mixin flex($dir:column, $justify:flex-start, $align:center) {
+    display: flex;
+    flex-direction: $dir;
+    justify-content: $justify;
+    align-items: $align;
+}
+
+.share {
+    @include flex()
+}

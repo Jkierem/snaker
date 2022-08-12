@@ -1,0 +1,1 @@
+export const getCurrentVersion = () => "1.2.0"

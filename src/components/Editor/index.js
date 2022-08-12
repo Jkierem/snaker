@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { useCallback, useContext, useImperativeHandle, useRef, useState } from 'react'
 import AceEditor from "react-ace"
 import gcn from "getclassname"
-import StorageObject from '../../middleware/localStorage';
 import { TopicContext } from '../../core/topic';
 import { Event } from "../../core/types"
 import { getVariant, Maybe } from 'jazzi';
@@ -41,6 +40,13 @@ const EventButton = ({ type, onClick }) => {
     _: () => "fallback"
   })
 
+  const getLabel = evt => {
+    return evt.match({
+      Save: () => "Save/Load",
+      _: () => getVariant(evt)
+    })
+  }
+
   const style = {
     '--color': `var(--${color})`,
     '--color-alt': `var(--${color}-dark)`,
@@ -60,7 +66,7 @@ const EventButton = ({ type, onClick }) => {
         .fmap(cl => <i className={cl} />)
         .onNone(() => <></>)
     }
-    <div className={buttonLabelCl}>{getVariant(type)}</div>
+    <div className={buttonLabelCl}>{getLabel(type)}</div>
   </div>
 }
 
@@ -83,30 +89,28 @@ const parseValue = (val) => {
   }
 }
 
-const Editor = React.forwardRef((props,ref) => {
+const Editor = React.forwardRef(({ code, setCode},ref) => {
   const debuggerData = useDebugger();
   const { persistance, running, errors, dead } = debuggerData
   const annotations = errors ? errors.map(x => ({ ...x, type: "error" })) : []
   const persistanceKeys = Object.keys(persistance ?? {}).sort()
-  const [code, setCode] = useState('');
   const [open, setOpen] = useState(false);
   const editorRef = useRef();
+  const topic = useContext(TopicContext);
 
-  useEffect(() => {
-    StorageObject.load().then(setCode);
-  },[])
+  const handleCodeChange = useCallback((code, triggerSave=true) => {
+    setCode(code)
+    if( triggerSave ){
+      topic.emit(Event.SaveCode, code)
+    }
+    topic.emit(Event.CleanErrors)
+  },[setCode, topic])
 
   useImperativeHandle(ref, () => ({
-    showExample: () => setCode(example)
-  }))
+    showExample: () => setCode(example),
+    setCodeOnce: (code, triggerSave=false) => handleCodeChange(code, triggerSave),
+  }),[handleCodeChange, setCode])
 
-  const handleCodeChange = (code) => {
-    setCode(code)
-    topic.emit(Event.SaveCode, code)
-    topic.emit(Event.CleanErrors)
-  }
-
-  const topic = useContext(TopicContext);
   const handleEvent = (evt) => {
     evt.match({
       Play: () => topic.emit(evt, code),
@@ -159,14 +163,14 @@ const Editor = React.forwardRef((props,ref) => {
           type={Event.Options}
           onClick={handleEvent}
         />
-        {/* <EventButton 
+        <EventButton 
           type={Event.Save}
           onClick={handleEvent}
         />
         <EventButton 
-          type={Event.Load}
+          type={Event.Share}
           onClick={handleEvent}
-        /> */}
+        />
       </div>
       <AceEditor
         width="100%"

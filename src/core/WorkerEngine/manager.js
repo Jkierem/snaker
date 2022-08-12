@@ -56,7 +56,7 @@ const WorkerManager = () => {
             return spawnWorker(context)
             .then(([persistanceData, desiredAction]) => {
                 desiredAction
-                .effect((action) => {
+                .tap((action) => {
                     if( action === "right" ){
                         context.engine.turnRight();
                     } else {
@@ -68,8 +68,8 @@ const WorkerManager = () => {
                 context.engine.runStep();
                 Maybe
                     .fromFalsy(context.stopped || context.engine.isDead)
-                    .effect(() => context.engine.isDead && context.topic.emit(Event.Death, true))
-                    .effect(() => this.stop())
+                    .tap(() => context.engine.isDead && context.topic.emit(Event.Death, true))
+                    .tap(() => this.stop())
                     .ifNone(() => this.run())
             }).catch(err => {
                 this.stop();
@@ -88,7 +88,7 @@ const WorkerManager = () => {
         },
         terminate(){
             terminateWorker(context.worker)
-            .effect(() => context.setWorker(undefined))
+            .tap(() => context.setWorker(undefined))
         },
         setTopic: (t) => context.setTopic(t),
         setEngine: (t) => context.setEngine(t),
