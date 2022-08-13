@@ -3,17 +3,23 @@
   "version": "1.1.2",
   "private": true,
   "dependencies": {
-    "ace-builds": "^1.4.12",
+    "ace-builds": "^1.9.5",
     "getclassname": "^2.1.2",
-    "jazzi": "latest",
-    "jazzi-observable": "latest",
-    "react": "^17.0.2",
-    "react-ace": "^9.4.1",
-    "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3",
-    "sass": "^1.35.2",
-    "terser": "^5.7.1",
-    "vlq": "^1.0.1"
+    "jazzi": "3.0.7",
+    "jazzi-observable": "2.0.2",
+    "react": "^18.2.0",
+    "react-ace": "^10.1.0",
+    "react-dom": "18.2.0",
+    "react-scripts": "5.0.1",
+    "sass": "^1.54.4",
+    "terser": "^5.14.2",
+    "vlq": "^2.0.4"
+  },
+  "devDependencies": {
+    "@svgr/webpack": "6.3.1"
+  },
+  "resolutions": {
+    "@svgr/webpack": "6.3.1"
   },
   "scripts": {
     "start": "react-scripts start",
