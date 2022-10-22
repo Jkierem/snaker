@@ -58,7 +58,7 @@ const EventButton = ({ type, onClick }) => {
 
   return <div 
     className={buttonCl}
-    style={style}
+    style={style as any}
     onClick={handleClick}
   >
     { 
@@ -89,7 +89,12 @@ const parseValue = (val) => {
   }
 }
 
-const Editor = React.forwardRef(({ code, setCode},ref) => {
+interface EditorProps {
+  code: string,
+  setCode: React.Dispatch<React.SetStateAction<string>>
+}
+
+const Editor = React.forwardRef<AceEditor, EditorProps>(({ code, setCode},ref) => {
   const debuggerData = useDebugger();
   const { persistance, running, errors, dead } = debuggerData
   const annotations = errors ? errors.map(x => ({ ...x, type: "error" })) : []

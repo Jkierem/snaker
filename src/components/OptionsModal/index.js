@@ -22,6 +22,7 @@ const OptionsModal = ({ open, onClose, engine }) => {
     });
     const optionsFieldCl = optionsCl.element("field");
     const optionsButtonCl = optionsCl.element("button")
+    const optionsTooltipCl = optionsCl.element("tooltip");
     const optionsButtonAltCl = optionsCl.element("button").recompute({ "&--danger": true });
 
     const handleSpeedChange = (e) => setData(d => ({ ...d, speed: e.target.value }))
@@ -44,6 +45,13 @@ const OptionsModal = ({ open, onClose, engine }) => {
                     <label>Random Seed</label>
                     <input type="checkbox" checked={!data.deterministic} onChange={handleRandomChange} />
                     <input type="text" max={9999999} pattern="\d*" maxLength={8} value={data.seed} disabled={!data.deterministic} onChange={handleSeedChange} />
+                </div>
+                <div className={optionsFieldCl}>
+                    <label>
+                        <span className={optionsTooltipCl} title="By enabling this, you are allowing the use of cookies to store your code">?</span>
+                        Auto save (cookies)
+                    </label>
+                    <input type="checkbox" checked={true} onChange={() => {}} tooltip/>
                 </div>
                 <div className={optionsFieldCl}>
                     <button className={optionsButtonCl} onClick={handleClose("save",data)}>Save</button>

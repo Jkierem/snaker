@@ -1,8 +1,13 @@
-import { BoxedEnumType, Enum, EnumType, Functor, Maybe, Union } from "jazzi"
+import { BoxedEnumType, Enum, EnumType, EnumTypeRep, EnumValue, Functor, Maybe, Union,  } from "jazzi"
 import { rangeOf } from "../resources/utils";
 
-export const Direction = EnumType("Dir",["Up","Down","Left","Right","UpLeft","UpRight","DownLeft","DownRight"])
-Direction.fromTuple = (x,y) => {
+type EnumValueOf<X> = X extends EnumTypeRep<infer Cases> ? EnumValue<Cases> : never;
+type ExtendedEnumRep<Rep extends EnumTypeRep<any>,A> = Rep & A
+
+const DirEnum = EnumType("Dir", ["Up","Down","Left","Right","UpLeft","UpRight","DownLeft","DownRight","Center"]);
+type DirValue = EnumValueOf<typeof DirEnum>
+export const Direction = DirEnum as ExtendedEnumRep<typeof DirEnum, { fromTuple: (x: number, y: number) => DirValue }>
+Direction.fromTuple = (x: number, y: number): DirValue => {
     if( x < 0 ){
         if( y < 0 ){
             return Direction.UpLeft
@@ -24,11 +29,14 @@ Direction.fromTuple = (x,y) => {
             return Direction.Up
         } else if( y > 0 ){
             return Direction.Down
-        } 
+        } else {
+            return Direction.Center
+        }
     }
 }
 
-export const BoxedTile = BoxedEnumType("BoxedTile",["Empty","Fruit","Wall","Head","Body","Tail"])
+const BoxedTileEnum = BoxedEnumType("BoxedTile",["Empty","Fruit","Wall","Head","Body","Tail"])
+export const BoxedTile = 
 BoxedTile.mapToBodyPart = (l) => (coord,idx,snake) => {
   if( idx === 0 ){
     const neck = Position.fromArray(snake[idx + 1])
@@ -195,7 +203,7 @@ export const Matrix = Union({
         of(mat){
             return this.Matrix(mat)
         },
-        fromDimensions(x,y,init){
+        fromDimensions(x: number, y: number, init: ){
             return this.Matrix(rangeOf(x,init).map(() => rangeOf(y,init)))
         },
         square(x){ return this.fromDimensions(x,x) },
@@ -211,6 +219,6 @@ export const Delay = Union({
         Fast  : () => 0,
     },
     config: { noHelpers: true },
-    extensions: [ Enum() ],
+    extensions: [ Enum({}) ],
     constructors: {},
 })

@@ -60,6 +60,18 @@
             0px 1px 5px 0px rgba(0,0,0,.12);
     }
 
+    &__tooltip {
+        display: inline-flex;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        color: white;
+        background-color: var(--help);
+        cursor: help;
+        align-items: center;
+        justify-content: center;
+    }
+
     &__field {
         @include flex(row, flex-start, center);
         width: 100%;
